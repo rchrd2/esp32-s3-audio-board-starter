@@ -120,6 +120,8 @@ err:
 
 static esp_err_t esp_lcd_touch_axs5106_read_data(esp_lcd_touch_handle_t tp)
 {
+    static uint32_t error_count = 0;
+    static uint32_t last_error_log = 0;
     esp_err_t err;
     uint8_t data[30] = {0};
     uint8_t points;
@@ -128,7 +130,20 @@ static esp_err_t esp_lcd_touch_axs5106_read_data(esp_lcd_touch_handle_t tp)
     assert(tp != NULL);
 
     err = touch_axs5106_i2c_read(tp, TOUCH_AXS5106_TOUCH_POINTS_REG, data, 14);
-    ESP_RETURN_ON_ERROR(err, TAG, "I2C read error!");
+    if (err != ESP_OK) {
+        error_count++;
+        // Only log error every 100 failures to avoid flooding console
+        if (error_count % 100 == 0 && (xTaskGetTickCount() - last_error_log) > pdMS_TO_TICKS(10000)) {
+            ESP_LOGW(TAG, "I2C read error! (suppressed %lu errors)", (unsigned long)error_count);
+            last_error_log = xTaskGetTickCount();
+        }
+        return err;
+    }
+
+    // Reset error count on successful read
+    if (error_count > 0) {
+        error_count = 0;
+    }
     points = data[1];
     points = points & 0x0F;
 

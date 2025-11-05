@@ -2,7 +2,7 @@
 
 static const char *TAG_LVGL = "LVGL";
 
-    
+
 
 lv_disp_draw_buf_t disp_buf;                                                 // contains internal graphic buffer(s) called draw buffer(s)
 lv_disp_drv_t disp_drv;                                                      // contains callback functions
@@ -30,26 +30,49 @@ void example_lvgl_flush_cb(lv_disp_drv_t *drv, const lv_area_t *area, lv_color_t
 /*Read the touchpad*/
 void example_touchpad_read( lv_indev_drv_t * drv, lv_indev_data_t * data )
 {
+    static uint32_t error_count = 0;
+    static uint32_t last_error_log = 0;
+
+    // Check if touch handle is valid
+    if (drv->user_data == NULL) {
+        data->state = LV_INDEV_STATE_REL;
+        return;
+    }
+
     uint16_t touchpad_x[5] = {0};
     uint16_t touchpad_y[5] = {0};
     uint8_t touchpad_cnt = 0;
 
-    /* Read touch controller data */
-    esp_lcd_touch_read_data(drv->user_data);
+    /* Read touch controller data - this may fail silently if I2C errors occur */
+    esp_err_t ret = esp_lcd_touch_read_data(drv->user_data);
+
+    // If read fails, just report no touch and suppress error logging
+    if (ret != ESP_OK) {
+        error_count++;
+        // Only log error every 100 failures to avoid flooding console
+        if (error_count % 100 == 0 && (xTaskGetTickCount() - last_error_log) > pdMS_TO_TICKS(10000)) {
+            ESP_LOGW(TAG_LVGL, "Touch read errors (suppressed %lu errors)", (unsigned long)error_count);
+            last_error_log = xTaskGetTickCount();
+        }
+        data->state = LV_INDEV_STATE_REL;
+        return;
+    }
+
+    // Reset error count on successful read
+    if (error_count > 0) {
+        error_count = 0;
+    }
 
     /* Get coordinates */
     bool touchpad_pressed = esp_lcd_touch_get_coordinates(drv->user_data, touchpad_x, touchpad_y, NULL, &touchpad_cnt, 5);
 
-    // printf("CCCCCCCCCCCCC=%d  \r\n",touchpad_cnt);
     if (touchpad_pressed && touchpad_cnt > 0) {
         data->point.x = touchpad_x[0];
         data->point.y = touchpad_y[0];
         data->state = LV_INDEV_STATE_PR;
-        // printf("X=%u Y=%u num=%d \r\n", data->point.x, data->point.y,touchpad_cnt);
     } else {
         data->state = LV_INDEV_STATE_REL;
     }
-   
 }
 /* Rotate display and touch, when rotated screen in LVGL. Called when driver parameters are updated. */
 void example_lvgl_port_update_callback(lv_disp_drv_t *drv)
@@ -86,25 +109,25 @@ void LVGL_Init(void)
 {
     ESP_LOGI(TAG_LVGL, "Initialize LVGL library");
     lv_init();
-    
+
     lv_color_t *buf1 = heap_caps_malloc(LVGL_BUF_LEN * sizeof(lv_color_t), MALLOC_CAP_SPIRAM); // MALLOC_CAP_DMA  MALLOC_CAP_SPIRAM
     assert(buf1);
-    lv_color_t *buf2 = heap_caps_malloc(LVGL_BUF_LEN * sizeof(lv_color_t) , MALLOC_CAP_SPIRAM);    
+    lv_color_t *buf2 = heap_caps_malloc(LVGL_BUF_LEN * sizeof(lv_color_t) , MALLOC_CAP_SPIRAM);
     assert(buf2);
     lv_disp_draw_buf_init(&disp_buf, buf1, buf2, LVGL_BUF_LEN );                              // initialize LVGL draw buffers
 
     ESP_LOGI(TAG_LVGL, "Register display driver to LVGL");
     lv_disp_drv_init(&disp_drv);                                                                        // Create a new screen object and initialize the associated device
-    disp_drv.hor_res = EXAMPLE_LCD_WIDTH;             
+    disp_drv.hor_res = EXAMPLE_LCD_WIDTH;
     disp_drv.ver_res = EXAMPLE_LCD_HEIGHT;                                                                       // Vertical axis pixel count
     disp_drv.flush_cb = example_lvgl_flush_cb;                                                          // Function : copy a buffer's content to a specific area of the display
-    disp_drv.drv_update_cb = example_lvgl_port_update_callback;                                         // Function : Rotate display and touch, when rotated screen in LVGL. Called when driver parameters are updated. 
+    disp_drv.drv_update_cb = example_lvgl_port_update_callback;                                         // Function : Rotate display and touch, when rotated screen in LVGL. Called when driver parameters are updated.
     disp_drv.draw_buf = &disp_buf;                                                                      // LVGL will use this buffer(s) to draw the screens contents
     disp_drv.full_refresh = 1;
-    disp_drv.user_data = panel_handle;                
+    disp_drv.user_data = panel_handle;
     ESP_LOGI(TAG_LVGL,"Register display indev to LVGL");                                                  // Custom display driver user data
-    disp = lv_disp_drv_register(&disp_drv);     
-    
+    disp = lv_disp_drv_register(&disp_drv);
+
     lv_indev_drv_init ( &indev_drv );
     indev_drv.type = LV_INDEV_TYPE_POINTER;
     indev_drv.disp = disp;
@@ -119,7 +142,7 @@ void LVGL_Init(void)
         .callback = &example_increase_lvgl_tick,
         .name = "lvgl_tick"
     };
-    
+
     esp_timer_handle_t lvgl_tick_timer = NULL;
     ESP_ERROR_CHECK(esp_timer_create(&lvgl_tick_timer_args, &lvgl_tick_timer));
     ESP_ERROR_CHECK(esp_timer_start_periodic(lvgl_tick_timer, EXAMPLE_LVGL_TICK_PERIOD_MS * 1000));

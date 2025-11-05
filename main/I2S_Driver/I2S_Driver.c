@@ -80,7 +80,7 @@ esp_err_t i2s_deinit(uint8_t port)
     i2s_keep[port] = NULL;
     return 0;
 }
- 
+
 void I2S_Init(void){
     i2s_init(0);
     Audio_Driver_Init(0);
@@ -132,20 +132,21 @@ void Audio_Driver_Init(uint8_t port)
     ESP_ERROR_CHECK(esp_codec_dev_open(output_dev, &fs));
     ESP_ERROR_CHECK(esp_codec_dev_set_out_vol(output_dev, (int)Volume));
 
-    // New input codec interface
-    i2c_cfg.addr = ES7210_CODEC_DEFAULT_ADDR;
-    const audio_codec_ctrl_if_t *in_ctrl_if = audio_codec_new_i2c_ctrl(&i2c_cfg);
-    assert(in_ctrl_if != NULL);
-    es7210_codec_cfg_t es7210_cfg = {
-        .ctrl_if = in_ctrl_if,
-        .mic_selected = ES7120_SEL_MIC1 | ES7120_SEL_MIC2 | ES7120_SEL_MIC3,
-    };
-    const audio_codec_if_t *in_codec_if = es7210_codec_new(&es7210_cfg);
-    assert(in_codec_if != NULL);
-    dev_cfg.codec_if = in_codec_if;
-    dev_cfg.dev_type = ESP_CODEC_DEV_TYPE_IN;
-    input_dev = esp_codec_dev_new(&dev_cfg);
-    assert(input_dev != NULL);
-    ESP_ERROR_CHECK(esp_codec_dev_open(input_dev, &fs));
-    ESP_ERROR_CHECK(esp_codec_dev_set_in_gain(input_dev, 30.0));
+    // Input codec interface disabled - no microphone
+    // i2c_cfg.addr = ES7210_CODEC_DEFAULT_ADDR;
+    // const audio_codec_ctrl_if_t *in_ctrl_if = audio_codec_new_i2c_ctrl(&i2c_cfg);
+    // assert(in_ctrl_if != NULL);
+    // es7210_codec_cfg_t es7210_cfg = {
+    //     .ctrl_if = in_ctrl_if,
+    //     .mic_selected = ES7120_SEL_MIC1 | ES7120_SEL_MIC2 | ES7120_SEL_MIC3,
+    // };
+    // const audio_codec_if_t *in_codec_if = es7210_codec_new(&es7210_cfg);
+    // assert(in_codec_if != NULL);
+    // dev_cfg.codec_if = in_codec_if;
+    // dev_cfg.dev_type = ESP_CODEC_DEV_TYPE_IN;
+    // input_dev = esp_codec_dev_new(&dev_cfg);
+    // assert(input_dev != NULL);
+    // ESP_ERROR_CHECK(esp_codec_dev_open(input_dev, &fs));
+    // ESP_ERROR_CHECK(esp_codec_dev_set_in_gain(input_dev, 30.0));
+    input_dev = NULL;  // No microphone input
 }

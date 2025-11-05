@@ -1,10 +1,10 @@
 #pragma once
-#include "esp_log.h" 
-#include "esp_check.h" 
-#include "unity.h" 
-#include "audio_player.h" 
-#include "driver/gpio.h" 
-#include "freertos/semphr.h" 
+#include "esp_log.h"
+#include "esp_check.h"
+#include "unity.h"
+#include "audio_player.h"
+#include "driver/gpio.h"
+#include "freertos/semphr.h"
 
 #include "esp_idf_version.h"
 #include "driver/i2s_std.h"
@@ -17,17 +17,17 @@
 #include "TCA9555PWR.h"
 #include "I2C_Driver.h"
 #include "I2S_Driver.h"
-#include "LVGL_Music.h"
+// #include "LVGL_Music.h"  // Disabled - no LCD
 #include "Button_Driver.h"
 
 #define CONFIG_BSP_I2S_NUM    0
 #define I2S_MAX_KEEP          SOC_I2S_NUM
 
-#define BSP_I2S_SCLK          (GPIO_NUM_13) 
-#define BSP_I2S_MCLK          (GPIO_NUM_12) 
-#define BSP_I2S_LCLK          (GPIO_NUM_14) 
-#define BSP_I2S_DOUT          (GPIO_NUM_16) 
-#define BSP_I2S_DSIN          (GPIO_NUM_15) 
+#define BSP_I2S_SCLK          (GPIO_NUM_13)
+#define BSP_I2S_MCLK          (GPIO_NUM_12)
+#define BSP_I2S_LCLK          (GPIO_NUM_14)
+#define BSP_I2S_DOUT          (GPIO_NUM_16)
+#define BSP_I2S_DSIN          (GPIO_NUM_15)
 
 #define Audio_sample_rate 16000
 
@@ -44,20 +44,17 @@
             .ws_inv = false,   \
         },                     \
     }
-    
+
 #define Volume_MAX  100
 
 
 
 extern esp_codec_dev_handle_t input_dev;
-extern bool Music_Next_Flag;
 extern uint8_t Volume;
 void Audio_Init(void);
-void Play_Music(const char* directory, const char* fileName);
-void Music_resume(void);
-void Music_pause(void);
-
 void Volume_adjustment(uint8_t Volume);
+void Play_Beep(float frequency);
+void Play_WAV_File(const char* filepath);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -74,23 +71,23 @@ void Volume_adjustment(uint8_t Volume);
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*
-#include "esp_log.h" 
-#include "esp_check.h" 
-#include "unity.h" 
-#include "audio_player.h" 
-#include "driver/gpio.h" 
-#include "freertos/semphr.h" 
+#include "esp_log.h"
+#include "esp_check.h"
+#include "unity.h"
+#include "audio_player.h"
+#include "driver/gpio.h"
+#include "freertos/semphr.h"
 
 #include "SD_MMC.h"
 
 #define CONFIG_BSP_I2S_NUM 0
 
 
-#define BSP_I2S_SCLK          (GPIO_NUM_13) 
-#define BSP_I2S_MCLK          (GPIO_NUM_12) 
-#define BSP_I2S_LCLK          (GPIO_NUM_14) 
-#define BSP_I2S_DOUT          (GPIO_NUM_15) 
-#define BSP_I2S_DSIN          (GPIO_NUM_14) 
+#define BSP_I2S_SCLK          (GPIO_NUM_13)
+#define BSP_I2S_MCLK          (GPIO_NUM_12)
+#define BSP_I2S_LCLK          (GPIO_NUM_14)
+#define BSP_I2S_DOUT          (GPIO_NUM_15)
+#define BSP_I2S_DSIN          (GPIO_NUM_14)
 
 #define BSP_I2S_GPIO_CFG       \
     {                          \
@@ -143,12 +140,12 @@ void Volume_adjustment(uint8_t Volume);
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*
-#include "esp_log.h" 
-#include "esp_check.h" 
-#include "unity.h" 
-#include "audio_player.h" 
-#include "driver/gpio.h" 
-#include "freertos/semphr.h" 
+#include "esp_log.h"
+#include "esp_check.h"
+#include "unity.h"
+#include "audio_player.h"
+#include "driver/gpio.h"
+#include "freertos/semphr.h"
 
 
 #include "esp32_s3_audio_board.h" // 引入开发板配置
@@ -168,11 +165,11 @@ void Volume_adjustment(uint8_t Volume);
 #define CONFIG_BSP_I2S_NUM 0
 
 
-#define BSP_I2S_SCLK          (GPIO_NUM_48) 
-#define BSP_I2S_MCLK          (GPIO_NUM_NC) 
-#define BSP_I2S_LCLK          (GPIO_NUM_38) 
-#define BSP_I2S_DOUT          (GPIO_NUM_47) 
-#define BSP_I2S_DSIN          (GPIO_NUM_NC) 
+#define BSP_I2S_SCLK          (GPIO_NUM_48)
+#define BSP_I2S_MCLK          (GPIO_NUM_NC)
+#define BSP_I2S_LCLK          (GPIO_NUM_38)
+#define BSP_I2S_DOUT          (GPIO_NUM_47)
+#define BSP_I2S_DSIN          (GPIO_NUM_NC)
 
 #define BSP_I2S_GPIO_CFG       \
     {                          \

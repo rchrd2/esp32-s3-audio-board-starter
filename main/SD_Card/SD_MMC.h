@@ -8,10 +8,10 @@
 #include "dirent.h"
 #include "sdmmc_cmd.h"
 #include "driver/sdmmc_host.h"
-#include "esp_log.h" 
+#include "esp_log.h"
 #include <errno.h>
 
-#include "esp_flash.h"    
+#include "esp_flash.h"
 #include "TCA9555PWR.h"
 
 #define CONFIG_EXAMPLE_PIN_CLK  40
@@ -19,7 +19,7 @@
 #define CONFIG_EXAMPLE_PIN_D0   41
 #define CONFIG_EXAMPLE_PIN_D1   -1
 #define CONFIG_EXAMPLE_PIN_D2   -1
-#define CONFIG_EXAMPLE_PIN_D3   -1  
+#define CONFIG_EXAMPLE_PIN_D3   -1
 
 
 
@@ -33,5 +33,6 @@ extern uint32_t SDCard_Size;
 extern uint32_t Flash_Size;
 void SD_Init(void);
 void Flash_Searching(void);
+void SPIFFS_Init(void);
 FILE* Open_File(const char *file_path);
 uint16_t Folder_retrieval(const char* directory, const char* fileExtension, char File_Name[][100],uint16_t maxFiles);

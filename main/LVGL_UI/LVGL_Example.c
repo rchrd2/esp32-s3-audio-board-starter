@@ -1,8 +1,5 @@
 #include "LVGL_Example.h"
-#include "LVGL_Music.h"
 #include <demos/lv_demos.h>
-// #include <demos/music/lv_demo_music_main.h>
-// #include <demos/music/lv_demo_music_list.h>
 
 
 /**********************
@@ -18,7 +15,6 @@ typedef enum {
  *  STATIC PROTOTYPES
  **********************/
 static void Onboard_create(lv_obj_t * parent);
-static void Music_create(lv_obj_t * parent);
 
 static void ta_event_cb(lv_event_t * e);
 void example1_increase_lvgl_tick(lv_timer_t * t);
@@ -39,7 +35,6 @@ static const lv_font_t * font_large;
 static const lv_font_t * font_normal;
 
 lv_timer_t * auto_step_timer;
-static lv_color_t original_screen_bg_color;
 
 static lv_timer_t * meter2_timer;
 
@@ -56,20 +51,20 @@ void auto_switch(lv_timer_t * t)
 {
   uint16_t page = lv_tabview_get_tab_act(tv);
 
-  if (page == 0) { 
-    lv_tabview_set_act(tv, 1, LV_ANIM_ON); 
-  } else if (page == 3) { 
-    lv_tabview_set_act(tv, 2, LV_ANIM_ON); 
+  if (page == 0) {
+    lv_tabview_set_act(tv, 1, LV_ANIM_ON);
+  } else if (page == 3) {
+    lv_tabview_set_act(tv, 2, LV_ANIM_ON);
   }
 }
 
 void Lvgl_Example1(void){
 
-  disp_size = DISP_SMALL;                            
+  disp_size = DISP_SMALL;
 
-  font_large = LV_FONT_DEFAULT;                             
-  font_normal = LV_FONT_DEFAULT;                         
-  
+  font_large = LV_FONT_DEFAULT;
+  font_normal = LV_FONT_DEFAULT;
+
   lv_coord_t tab_h;
   tab_h = 45;
   #if LV_FONT_MONTSERRAT_18
@@ -82,7 +77,7 @@ void Lvgl_Example1(void){
   #else
     LV_LOG_WARN("LV_FONT_MONTSERRAT_12 is not enabled for the widgets demo. Using LV_FONT_DEFAULT instead.");
   #endif
-  
+
   lv_style_init(&style_text_muted);
   lv_style_set_text_opa(&style_text_muted, LV_OPA_90);
 
@@ -124,20 +119,18 @@ void Lvgl_Example1(void){
   lv_obj_t * t0 = lv_tabview_add_tab(tv, "       ");
 #endif
   lv_obj_t * t1 = lv_tabview_add_tab(tv, "Onboard");
-  lv_obj_t * t2 = lv_tabview_add_tab(tv, "music");
 #ifdef Round_LCD_screen
   lv_obj_t * t3 = lv_tabview_add_tab(tv, "       ");
 #endif
 #ifdef Round_LCD_screen
-  LV_UNUSED(t0);  
-  LV_UNUSED(t3);  
+  LV_UNUSED(t0);
+  LV_UNUSED(t3);
 #endif
   Onboard_create(t1);
-  Music_create(t2);
 #ifdef Round_LCD_screen
   lv_timer_create(auto_switch, 100, NULL);
 #endif
-  
+
 }
 
 void Lvgl_Example1_close(void)
@@ -222,18 +215,18 @@ static void Onboard_create(lv_obj_t * parent)
   lv_label_set_text(Backlight_label, "Backlight brightness");
   lv_obj_add_style(Backlight_label, &style_text_muted, 0);
 
-  Backlight_slider = lv_slider_create(panel1);                                 
-  lv_obj_add_flag(Backlight_slider, LV_OBJ_FLAG_CLICKABLE);    
-  lv_obj_set_size(Backlight_slider, 100, 20);              
-  lv_obj_set_style_radius(Backlight_slider, 3, LV_PART_KNOB);               // Adjust the value for more or less rounding                                            
-  lv_obj_set_style_bg_opa(Backlight_slider, LV_OPA_TRANSP, LV_PART_KNOB);                               
-  // lv_obj_set_style_pad_all(Backlight_slider, 0, LV_PART_KNOB);                                            
-  lv_obj_set_style_bg_color(Backlight_slider, lv_color_hex(0xAAAAAA), LV_PART_KNOB);               
-  lv_obj_set_style_bg_color(Backlight_slider, lv_color_hex(0xFFFFFF), LV_PART_INDICATOR);             
-  lv_obj_set_style_outline_width(Backlight_slider, 2, LV_PART_INDICATOR);  
-  lv_obj_set_style_outline_color(Backlight_slider, lv_color_hex(0xD3D3D3), LV_PART_INDICATOR);      
-  lv_slider_set_range(Backlight_slider, 5, Backlight_MAX);              
-  lv_slider_set_value(Backlight_slider, LCD_Backlight, LV_ANIM_ON);  
+  Backlight_slider = lv_slider_create(panel1);
+  lv_obj_add_flag(Backlight_slider, LV_OBJ_FLAG_CLICKABLE);
+  lv_obj_set_size(Backlight_slider, 100, 20);
+  lv_obj_set_style_radius(Backlight_slider, 3, LV_PART_KNOB);               // Adjust the value for more or less rounding
+  lv_obj_set_style_bg_opa(Backlight_slider, LV_OPA_TRANSP, LV_PART_KNOB);
+  // lv_obj_set_style_pad_all(Backlight_slider, 0, LV_PART_KNOB);
+  lv_obj_set_style_bg_color(Backlight_slider, lv_color_hex(0xAAAAAA), LV_PART_KNOB);
+  lv_obj_set_style_bg_color(Backlight_slider, lv_color_hex(0xFFFFFF), LV_PART_INDICATOR);
+  lv_obj_set_style_outline_width(Backlight_slider, 2, LV_PART_INDICATOR);
+  lv_obj_set_style_outline_color(Backlight_slider, lv_color_hex(0xD3D3D3), LV_PART_INDICATOR);
+  lv_slider_set_range(Backlight_slider, 5, Backlight_MAX);
+  lv_slider_set_value(Backlight_slider, LCD_Backlight, LV_ANIM_ON);
   lv_obj_add_event_cb(Backlight_slider, Backlight_adjustment_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
   static lv_coord_t grid_main_col_dsc[] = {LV_GRID_FR(1), LV_GRID_TEMPLATE_LAST};
@@ -275,7 +268,7 @@ static void Onboard_create(lv_obj_t * parent)
     40,               /*Box*/
     LV_GRID_CONTENT,  /*Box title*/
     40,               /*Box*/
-    LV_GRID_TEMPLATE_LAST               
+    LV_GRID_TEMPLATE_LAST
   };
 
   lv_obj_set_grid_cell(panel1, LV_GRID_ALIGN_STRETCH, 0, 1, LV_GRID_ALIGN_START, 0, 1);
@@ -299,7 +292,7 @@ static void Onboard_create(lv_obj_t * parent)
 
 void example1_increase_lvgl_tick(lv_timer_t * t)
 {
-  char buf[100]; 
+  char buf[100];
   snprintf(buf, sizeof(buf), "%ld MB\r\n", SDCard_Size);
   lv_textarea_set_placeholder_text(SD_Size, buf);
   snprintf(buf, sizeof(buf), "%ld MB\r\n", Flash_Size);
@@ -315,21 +308,15 @@ void example1_increase_lvgl_tick(lv_timer_t * t)
   //   snprintf(buf, sizeof(buf), "WIFI: %d  \r\n",WIFI_NUM);
   //   // snprintf(buf, sizeof(buf), "WIFI: %d    BLE: %d\r\n",WIFI_NUM,BLE_NUM);
   // lv_textarea_set_placeholder_text(Wireless_Scan, buf);
-  lv_slider_set_value(Backlight_slider, LCD_Backlight, LV_ANIM_ON); 
+  lv_slider_set_value(Backlight_slider, LCD_Backlight, LV_ANIM_ON);
   LVGL_Backlight_adjustment(LCD_Backlight);
 }
-static void Music_create(lv_obj_t * parent)
-{
-  original_screen_bg_color = lv_obj_get_style_bg_color(parent, 0);
-  lv_obj_set_style_bg_color(parent, lv_color_hex(0x343247), 0);
-
-  _lv_demo_music_main_create(parent);
-}
+// Music functionality removed
 
 void Backlight_adjustment_event_cb(lv_event_t * e) {
-  uint8_t Backlight = lv_slider_get_value(lv_event_get_target(e));  
+  uint8_t Backlight = lv_slider_get_value(lv_event_get_target(e));
   if (Backlight <= Backlight_MAX)  {
-    lv_slider_set_value(Backlight_slider, Backlight, LV_ANIM_ON); 
+    lv_slider_set_value(Backlight_slider, Backlight, LV_ANIM_ON);
     LCD_Backlight = Backlight;
     LVGL_Backlight_adjustment(Backlight);
   }
@@ -342,7 +329,7 @@ static void ta_event_cb(lv_event_t * e)
 }
 
 void LVGL_Backlight_adjustment(uint8_t Backlight) {
-  Set_Backlight(Backlight);                                 
+  Set_Backlight(Backlight);
 }
 
 

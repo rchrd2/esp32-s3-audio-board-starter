@@ -1,7 +1,9 @@
 #include "SD_MMC.h"
+#include "esp_spiffs.h"
 
 #define EXAMPLE_MAX_CHAR_SIZE    64
 #define MOUNT_POINT "/sdcard"
+#define SPIFFS_MOUNT_POINT "/spiffs"
 
 static const char *SD_TAG = "SD";
 
@@ -64,14 +66,14 @@ void SD_Init(void)
     // Options for mounting the filesystem.
     // If format_if_mount_failed is set to true, SD card will be partitioned and formatted in case when mounting fails.  false true
     esp_vfs_fat_sdmmc_mount_config_t mount_config = {
-        .format_if_mount_failed = true,           
+        .format_if_mount_failed = true,
         .max_files = 5,
         .allocation_unit_size = 16 * 1024
     };
     sdmmc_card_t *card;
     const char mount_point[] = MOUNT_POINT;
     ESP_LOGI(SD_TAG, "Initializing SD card");
-    
+
     // Use settings defined above to initialize SD card and mount FAT filesystem.
     // Note: esp_vfs_fat_sdmmc/sdspi_mount is all-in-one convenience functions.
     // Please check its source code and implement error recovery when developing production applications.
@@ -94,7 +96,7 @@ void SD_Init(void)
     slot_config.d1 = CONFIG_EXAMPLE_PIN_D1;
     slot_config.d2 = CONFIG_EXAMPLE_PIN_D2;
     slot_config.d3 = CONFIG_EXAMPLE_PIN_D3;
-    
+
     // Enable internal pullups on enabled pins. The internal pullups are insufficient however, please make sure 10k external pullups are connected on the bus. This is for debug / example purpose only.
     slot_config.flags |= SDMMC_SLOT_FLAG_INTERNAL_PULLUP;
 
@@ -131,6 +133,41 @@ void Flash_Searching(void)
     }
 }
 
+void SPIFFS_Init(void)
+{
+    ESP_LOGI(SD_TAG, "Initializing SPIFFS");
+
+    esp_vfs_spiffs_conf_t conf = {
+        .base_path = SPIFFS_MOUNT_POINT,
+        .partition_label = "audio",
+        .max_files = 5,
+        .format_if_mount_failed = false
+    };
+
+    esp_err_t ret = esp_vfs_spiffs_register(&conf);
+
+    if (ret != ESP_OK) {
+        if (ret == ESP_FAIL) {
+            ESP_LOGE(SD_TAG, "Failed to mount or format filesystem");
+        } else if (ret == ESP_ERR_NOT_FOUND) {
+            ESP_LOGE(SD_TAG, "Failed to find SPIFFS partition");
+        } else {
+            ESP_LOGE(SD_TAG, "Failed to initialize SPIFFS (%s)", esp_err_to_name(ret));
+        }
+        return;
+    }
+
+    size_t total = 0, used = 0;
+    ret = esp_spiffs_info("audio", &total, &used);
+    if (ret != ESP_OK) {
+        ESP_LOGE(SD_TAG, "Failed to get SPIFFS partition information (%s)", esp_err_to_name(ret));
+    } else {
+        ESP_LOGI(SD_TAG, "Partition size: total: %d, used: %d", total, used);
+    }
+
+    ESP_LOGI(SD_TAG, "SPIFFS mounted successfully at %s", SPIFFS_MOUNT_POINT);
+}
+
 
 FILE* Open_File(const char *file_path) {
     ESP_LOGI(SD_TAG, "Attempting to open file: %s", file_path);
@@ -140,21 +177,21 @@ FILE* Open_File(const char *file_path) {
     }
     else
         printf("File %s was successfully opened. \r\n", file_path);
-    return fp; 
+    return fp;
 }
 
 #define MAX_FILE_NAME_SIZE 100  // Define maximum file name size
 #define MAX_PATH_SIZE 512      // Define a larger size for the full path
-uint16_t Folder_retrieval(const char* directory, const char* fileExtension, char File_Name[][MAX_FILE_NAME_SIZE], uint16_t maxFiles)    
+uint16_t Folder_retrieval(const char* directory, const char* fileExtension, char File_Name[][MAX_FILE_NAME_SIZE], uint16_t maxFiles)
 {
-    DIR *dir = opendir(directory);  
+    DIR *dir = opendir(directory);
     if (dir == NULL) {
-        ESP_LOGE(SD_TAG, "Path: <%s> does not exist", directory); 
-        return 0;  
+        ESP_LOGE(SD_TAG, "Path: <%s> does not exist", directory);
+        return 0;
     }
 
-    uint16_t fileCount = 0;  
-    struct dirent *entry;   
+    uint16_t fileCount = 0;
+    struct dirent *entry;
 
     while ((entry = readdir(dir)) != NULL && fileCount < maxFiles) {
 
@@ -162,33 +199,33 @@ uint16_t Folder_retrieval(const char* directory, const char* fileExtension, char
             continue;
         }
 
-        const char *dot = strrchr(entry->d_name, '.');  
-        if (dot != NULL && dot != entry->d_name) { 
+        const char *dot = strrchr(entry->d_name, '.');
+        if (dot != NULL && dot != entry->d_name) {
 
-            if (strcasecmp(dot, fileExtension) == 0) {  
+            if (strcasecmp(dot, fileExtension) == 0) {
                 strncpy(File_Name[fileCount], entry->d_name, MAX_FILE_NAME_SIZE - 1);
-                File_Name[fileCount][MAX_FILE_NAME_SIZE - 1] = '\0';  
+                File_Name[fileCount][MAX_FILE_NAME_SIZE - 1] = '\0';
 
                 char filePath[MAX_PATH_SIZE];
                 snprintf(filePath, MAX_PATH_SIZE, "%s/%s", directory, entry->d_name);
 
-                printf("File found: %s\r\n", filePath); 
-                fileCount++;  
+                printf("File found: %s\r\n", filePath);
+                fileCount++;
             }
         }
         else{
-           
+
             // printf("No extension found for file: %s\r\n", entry->d_name);
         }
     }
 
-    closedir(dir);  
+    closedir(dir);
 
     if (fileCount > 0) {
-        ESP_LOGI(SD_TAG, "Retrieved %d files with extension '%s'", fileCount, fileExtension);  
+        ESP_LOGI(SD_TAG, "Retrieved %d files with extension '%s'", fileCount, fileExtension);
     } else {
-        ESP_LOGW(SD_TAG, "No files with extension '%s' found in directory: %s", fileExtension, directory); 
+        ESP_LOGW(SD_TAG, "No files with extension '%s' found in directory: %s", fileExtension, directory);
     }
 
-    return fileCount; 
+    return fileCount;
 }
