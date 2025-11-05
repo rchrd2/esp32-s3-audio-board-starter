@@ -1,12 +1,12 @@
 
-#include "SD_MMC.h"
+// #include "SD_MMC.h"
 #include "TCA9555PWR.h"
 // #include "LVGL_Example.h"  // Disabled - no LCD
 #include "Audio_Driver.h"
 #include "PCF85063.h"
 // #include "MIC_Speech.h"  // Disabled - no microphone
 // #include "LCD_Driver.h"  // Disabled - no LCD
-#include "RGB.h"
+// #include "RGB.h"
 #include "I2S_Driver.h"
 #include "Button_Driver.h"
 
@@ -27,9 +27,9 @@ void Driver_Init(void)
     EXIO_Init();                    // Example Initialize EXIO
     PCF85063_Init();
     I2S_Init();
-    RGB_Init();
-    RGB_Example();
-    SD_Init();
+    // RGB_Init();
+    // RGB_Example();
+    // SD_Init();
     SPIFFS_Init();                  // Initialize SPIFFS for audio files
     button_Init();
     xTaskCreatePinnedToCore(

@@ -8,7 +8,7 @@
  */
 
 static const char *TAG = "AUDIO";
-uint8_t Volume = Volume_MAX - 2;
+uint8_t Volume = 60;
 
 void Audio_PA_EN(){
     Set_EXIO(IO_EXPANDER_PIN_NUM_8,true);
@@ -80,7 +80,7 @@ static void audio_player_callback(audio_player_cb_ctx_t *ctx) {
 void Volume_Loop(void *parameter)
 {
     // Wireless_Init();
-    uint8_t Volume_Old = Volume;
+    // uint8_t Volume_Old = Volume;
     while(1)
     {
         if(BOOT_State){
@@ -90,10 +90,10 @@ void Volume_Loop(void *parameter)
             BOOT_State = 0;
         }
         if(KEY1_State){
-            if(Volume > 95)
-                Volume = 100;
-            else
-                Volume = Volume + 5;
+            // if(Volume > 95)
+            //     Volume = 100;
+            // else
+            //     Volume = Volume + 5;
             ESP_LOGI(TAG, "turn up the volume:%d",Volume);
             Play_Beep(440.0f);  // Play beep at 440 Hz when volume button is pressed
             KEY1_State = 0;
@@ -103,18 +103,18 @@ void Volume_Loop(void *parameter)
             KEY2_State = 0;
         }
         else if(KEY3_State){
-            if(Volume < 5)
-                Volume = 0;
-            else
-                Volume = Volume - 5;
+            // if(Volume < 5)
+            //     Volume = 0;
+            // else
+            //     Volume = Volume - 5;
             ESP_LOGI(TAG, "turn down the volume:%d",Volume);
             Play_Beep(880.0f);  // Play beep at 880 Hz when volume button is pressed
             KEY3_State = 0;
         }
-        if(Volume_Old != Volume){
-            Volume_adjustment(Volume);
-            Volume_Old = Volume;
-        }
+        // if(Volume_Old != Volume){
+        //     Volume_adjustment(Volume);
+        //     Volume_Old = Volume;
+        // }
         vTaskDelay(pdMS_TO_TICKS(100));
     }
     vTaskDelete(NULL);
